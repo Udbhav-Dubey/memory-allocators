@@ -6,33 +6,41 @@ class Bumpy{
     private:
         char* end{nullptr};
         char* curr{nullptr};
-        char* old_curr{nullptr};
         char* arr;
+        char* beg{nullptr};
     public:
+        bool flag=1;
         Bumpy(int N){
             arr=(char*)malloc(N*sizeof(char));
             end=arr+N;
             curr=arr;
+            beg=arr;
         }
-       char * give_me_bytes(int N){
+       char* give_me_bytes(int N){
             if (curr+N>=end){
                 std::cout << "not possible\n";
+                flag=0;
                 return nullptr;
             }
-            old_curr=curr;
-            curr=curr+N;
             int alli=alignof(std::max_align_t);
-            int *al=&alli;
-            if (*curr/ *al!=0){
-                curr+=(16-(* curr% *al));
+            char* old_curr=curr;
+            if (N%alli==0){
+                curr+=N;
+            } 
+            else {
+                int x=N%alli;
+                 N+=(alli-x);
+                curr+=N;
             }
             return old_curr;
         }
         void debug(){
-            std:: cout << "end : " << end <<"\n";
-            std:: cout << "curr : " << curr <<"\n";
-           std:: cout << "old_curr: " << old_curr << "\n";
-            std:: cout << "arr is : " << arr <<"\n" ;
+            std:: cout << "end : " << (int*)end <<"\n";
+            std:: cout << "curr : " << (int*)curr <<"\n";
+            std:: cout << "arr is : " << (int*)arr <<"\n" ;
+        }
+        void reset(){
+            curr=beg;
         }
     ~Bumpy(){
         free(arr);
@@ -43,10 +51,13 @@ int main (){
     std::cout << "enter the number of bytes you want : \n";
     std::cin>>user_bytes;
     Bumpy B(user_bytes);
+    while(B.flag){
     int n;
-    std::cout << "enter the size of array : \n";
+    std::cout << "you ask for bytes I shall give : " << "\n";
     std::cin>>n;
-    int* a=B.give_me_bytes(n);
+    char* a=B.give_me_bytes(n);
+    std::cout << "what did i get " << (int*)a <<"\n";
     B.debug();
+    }
     return 0;
 }
