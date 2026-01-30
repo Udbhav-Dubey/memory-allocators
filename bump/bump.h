@@ -5,8 +5,10 @@ private:
     char* curr{nullptr};
     char* end{nullptr};
     char* beg{nullptr};
+    int cap{};
+
 public:
-    bump(void* buffer,std::size_t size) noexcept;
+    bump(void* buffer,std::size_t size_ask) noexcept;
     void* allocate(std::size_t ask,std::size_t alignment) noexcept;
     void reset() noexcept;
     std::size_t capacity() const noexcept;
@@ -15,4 +17,5 @@ public:
     
     bump(const bump&)=delete;
     bump& operator=(const bump&)=delete;
+    ~bump();
 };
