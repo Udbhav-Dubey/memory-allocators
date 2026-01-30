@@ -35,8 +35,15 @@ class Bumpy{
             uintptr_t addr=reinterpret_cast<uintptr_t>(curr);
             addr+=mask;
             addr&=~(mask);
-            curr=reinterpret_cast<char*>(addr);
-            if (curr>end){std::cout << "cannot allocate this much memory allign issue\n";flag=0;return nullptr;}
+            char *cu=reinterpret_cast<char*>(addr);
+            if (cu>end){std::cout << "cannot allocate this much memory allign issue\n";
+                flag=0;
+                return nullptr;}
+            if (cu+N>end){
+                std::cout << "cannot allocate as ask size is too much big try lower value\n";
+                return nullptr;
+            }
+            curr=cu;
             oldcurr=curr;
             curr+=N;
             return oldcurr;
