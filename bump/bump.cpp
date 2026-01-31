@@ -15,10 +15,10 @@ void* bump::allocate(std::size_t ask,std::size_t alignment) noexcept{
     uintptr_t addr=reinterpret_cast<uintptr_t>(curr);
     addr=(addr+mask)&~mask;
     char* cu=reinterpret_cast<char*>(addr);
-    if (cu>end){std::cout <<"cannot allocate this much memory allignment issue\nreturning nullptr for now\n";
+    if (cu>end){//std::cout <<"cannot allocate this much memory allignment issue\nreturning nullptr for now\n";
     return nullptr;
     }
-    if (cu+ask>end){std::cout <<"cannot allocate as ask size is too much big try lower value\nreturning nullptr for now\n";
+    if (cu+ask>end){//std::cout <<"cannot allocate as ask size is too much big try lower value\nreturning nullptr for now\n";
     return nullptr;
     }
     curr=cu;

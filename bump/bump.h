@@ -5,7 +5,6 @@ private:
     char* curr{nullptr};
     char* end{nullptr};
     char* beg{nullptr};
-    int cap{};
 
 public:
     bump(void* buffer,std::size_t size_ask) noexcept;
@@ -17,5 +16,4 @@ public:
     
     bump(const bump&)=delete;
     bump& operator=(const bump&)=delete;
-    ~bump();
 };
