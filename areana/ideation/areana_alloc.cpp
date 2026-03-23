@@ -29,7 +29,7 @@ class Chunk{
         uintptr_t ucur=reinterpret_cast<uintptr_t>(curr);
         ucur=(ucur+mask) & ~(mask);
         char* check=reinterpret_cast<char*>(ucur);
-        if (check>end || check+N>end){
+        if (check+N>end){
             return nullptr;
         }
         curr=check;
@@ -42,8 +42,19 @@ class Chunk{
     }
     Chunk(const Chunk&) = delete; // delete constructor still not working 
     Chunk& operator=(const Chunk&)=delete;
-    Chunk& operator=(Chunk&&);
-    Chunk(Chunk && x){
+    Chunk(Chunk&&x)noexcept{
+        arr=x.arr;
+        x.arr=nullptr;
+        start=x.start;
+        x.start=nullptr;
+        curr=x.curr;
+        x.curr=nullptr;
+        end=x.end;
+        x.end=nullptr;
+    }
+    Chunk&operator=(Chunk&&x)noexcept{
+        if (this==&x)return *this;
+        free(arr);
         arr=x.arr;
         x.arr=nullptr;
         curr=x.curr;
@@ -52,6 +63,7 @@ class Chunk{
         x.start=nullptr;
         end=x.end;
         x.end=nullptr;
+        return *this;
     }
     void reset(){
         curr=start;
@@ -63,29 +75,29 @@ class Chunk{
 class Areana{
     private:
         std::vector<Chunk>areana;
-        int idx_last{-1};
+  //      int idx_last{-1};
         int extra{};
         int ali{4};
     public:
     Areana(int n,int a){
        // Chunk ch(n);
         areana.emplace_back(n);
-        idx_last++;
+//        idx_last++;
         ali=a;
         extra=n;
     }
     char* allocate(int byt){
-       char*temp=areana[idx_last].alloc(byt,ali);
+       char*temp=areana.back().alloc(byt,ali);
         if (temp==nullptr){
-            if (areana[idx_last].getflag()==1){
+            /*if (areana.back().getflag()==1){
                 std::cout << "align issue\n";
                 return nullptr;
-            }
+            }*/
             while(temp==nullptr){
            //     Chunk ch(byt+extra);
-                idx_last++;
+                //idx_last++;
                 areana.emplace_back(byt+extra);
-                temp=areana[idx_last].alloc(byt,ali);
+                temp=areana.back().alloc(byt,ali);
 //                std::cout << "checker of while inside check\n";
             }
         }
@@ -93,9 +105,6 @@ class Areana{
     }
     ~Areana(){
         std::cout << "size so far : " << areana.size() << "\n";
-        for (auto &c:areana){
-            c.reset();
-        }
         areana.clear();
     }
 };
@@ -132,6 +141,6 @@ void test3(){
     a.allocate(16);
 }
 int main (){
-    test3();
+//    test3();
     return 0;
 }
