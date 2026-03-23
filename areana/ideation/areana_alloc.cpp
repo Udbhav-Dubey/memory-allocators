@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <cstdint>
+#include <cassert>
 class Chunk{
     private:
     char* end{nullptr};
@@ -18,11 +19,12 @@ class Chunk{
     char* alloc(int N,int allign){
 /*        if (curr+N>end){
             return nullptr;
-        }*/
+        }
         if (allign<0||(allign&(allign-1))!=0){
             flag=1;
             return nullptr;
-        }
+        }*/
+        assert(allign!=0&&(allign&(allign-1))==0);
         uintptr_t mask=allign-1;
         uintptr_t ucur=reinterpret_cast<uintptr_t>(curr);
         ucur=(ucur+mask) & ~(mask);
@@ -125,7 +127,11 @@ void test2_1(){
     Areana a(64, 8);
 char* p = a.allocate(1);
 }
+void test3(){
+    Areana a(64,0);
+    a.allocate(16);
+}
 int main (){
-    test2_1();
+    test3();
     return 0;
 }
