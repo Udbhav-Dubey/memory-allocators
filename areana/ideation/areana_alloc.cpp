@@ -16,9 +16,9 @@ class Chunk{
         curr=arr;
     }
     char* alloc(int N,int allign){
-        if (curr+N>end){
+/*        if (curr+N>end){
             return nullptr;
-        }
+        }*/
         if (allign<0||(allign&(allign-1))!=0){
             flag=1;
             return nullptr;
@@ -38,8 +38,23 @@ class Chunk{
     bool getflag(){
         return flag;
     }
+    Chunk(const Chunk&) = delete; // delete constructor still not working 
+    Chunk& operator=(const Chunk&)=delete;
+    Chunk& operator=(Chunk&&);
+    Chunk(Chunk && x){
+        arr=x.arr;
+        x.arr=nullptr;
+        curr=x.curr;
+        x.curr=nullptr;
+        start=x.start;
+        x.start=nullptr;
+        end=x.end;
+        x.end=nullptr;
+    }
     void reset(){
         curr=start;
+    }
+    ~Chunk(){
         free(arr);
     }
 };
@@ -51,8 +66,8 @@ class Areana{
         int ali{4};
     public:
     Areana(int n,int a){
-        Chunk ch(n);
-        areana.push_back(ch);  
+       // Chunk ch(n);
+        areana.emplace_back(n);
         idx_last++;
         ali=a;
         extra=n;
@@ -65,9 +80,9 @@ class Areana{
                 return nullptr;
             }
             while(temp==nullptr){
-                Chunk ch(byt+extra);
+           //     Chunk ch(byt+extra);
                 idx_last++;
-                areana.push_back(ch);
+                areana.emplace_back(byt+extra);
                 temp=areana[idx_last].alloc(byt,ali);
 //                std::cout << "checker of while inside check\n";
             }
@@ -76,21 +91,21 @@ class Areana{
     }
     ~Areana(){
         std::cout << "size so far : " << areana.size() << "\n";
-        for (auto c:areana){
+        for (auto &c:areana){
             c.reset();
         }
         areana.clear();
     }
 };
-int main (){
-    int bytes;
+void test1(){
+int bytes;
     std::cout << "How many bytes : \n";
     std::cin >> bytes;
     std::cout << "enter the allignment in power of 2 please : \n";
     int ask_a;
     std::cin>>ask_a;
     Areana are(bytes,ask_a);
-    //while(true){
+    while(true){
     std::cout << "enter the number of bytes you want : \n";
     int ask_b;
     std::cin>>ask_b;
@@ -99,7 +114,18 @@ int main (){
         std::cout << "allocation failed\n";
     }
     else std::cout << "allocation occured\n";
-
-    //}
+    }
+}
+void test2(){
+Areana a(64, 8);
+char* p1 = a.allocate(16);
+char* p2 = a.allocate(16);
+}
+void test2_1(){
+    Areana a(64, 8);
+char* p = a.allocate(1);
+}
+int main (){
+    test2_1();
     return 0;
 }
