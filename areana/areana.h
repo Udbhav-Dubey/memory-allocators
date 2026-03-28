@@ -1,4 +1,6 @@
 #pragma once
+#include <vector>
+#include <cstdint>
 class Chunk{
     private:
      char* end{nullptr};
@@ -6,10 +8,10 @@ class Chunk{
     char* curr{nullptr};
     char* arr;
     public:
-    Chunk(int N);
-    char* alloc(int N,int allign);
+    Chunk(size_t N);
+    char* alloc(size_t N,size_t allign);
     Chunk(const Chunk&)=delete;
-    Chunk&operator(const Chunk&)=delete;
+    Chunk&operator=(const Chunk&)=delete;
     Chunk(Chunk&&x)noexcept;
     Chunk&operator=(Chunk&&x)noexcept;
     void reset();
@@ -17,11 +19,11 @@ class Chunk{
 };
 class Areana{
     private:
-        std::vector<&Chunk>areana;
-        int extra{};
-        int ali{4};
+        std::vector<Chunk>areana;
+        size_t extra{};
+        size_t ali{4};
     public:
-        Areana(int n,int a);
-        char *allocate(int byt);
+        Areana(size_t n,size_t a);
+        char *allocate(size_t byt);
         ~Areana();
 };
