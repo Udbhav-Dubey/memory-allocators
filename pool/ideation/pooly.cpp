@@ -57,8 +57,12 @@ class Pool{
             head=*(char**)temp;
             return temp;
         }
+        void* senderror(){
+            return nullptr;
+        }
         void pfree(char*ptr_x){
-            if (ptr_x<base||ptr_x>max_size){std::cout << "not my pool mate, get out\n";}
+            if (ptr_x<base||ptr_x>=max_size){std::cout << "not my pool mate, get out\n";senderror();}
+            if ((ptr_x-base)%fss!=0){std::cout << "not alligned \n";senderror();}
             *(char**)ptr_x=head;
             head=ptr_x;
         }
