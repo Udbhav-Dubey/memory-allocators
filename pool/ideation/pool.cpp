@@ -1,6 +1,11 @@
 #include <cstdlib>
 #include <iostream>
 #include <cassert>
+#include <algorithm>
+#include <cstddef>
+size_t align_up(size_t n,size_t a){
+    return (n+a-1)&~(a-1);
+}
 class Pool{
     private:
         size_t total_space;
@@ -10,19 +15,27 @@ class Pool{
        char*base{nullptr};
     public:
         Pool(size_t ts,size_t s):total_space{ts},slots{s}{
-            if (s>ts){      std::cout << "hey not allowed \n will use assert here rn not sure of syntax of assert\n";    
-           }
+        //    if (s>ts){      std::cout << "hey not allowed \n will use assert here rn not sure of syntax of assert\n";    
+         //  }
+         assert(s>0);
+         assert(ts>=s);
            fss=ts/s; 
+           fss=std::max(fss,sizeof(void*));
+           size_t alignment=alignof(std::max_align_t);
+            fss=align_up(fss,alignment);
             assert(fss>=sizeof(void*));
+            slots=ts/fss;
+            total_space=slots*fss;
+            assert(slots>0);
+            // malloc here bitch , get the base and final 
            base=(char*)malloc(sizeof(char)*ts);
+           assert(base!=nullptr);
         head=base;
-            size_t i=0;
            char* curr{nullptr};
             for(size_t i=0;i<slots;i++){
-                curr=head+(i*fss);
-            *(char**)curr=base+((i+1)*fss);
+                curr=base+(i*fss);
+       //     *(char**)curr=base+((i+1)*fss);
           //  *(char**)curr=head;
-            i++;
         
             if (i==slots-1){
                 *(char**)curr=nullptr;
