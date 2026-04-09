@@ -81,6 +81,6 @@ int main (){
     pool.pfree(px);
     // lets check double free now 
     pool.pfree(ptr_x);
-    pool.pfree(ptr_x);
+//    pool.pfree(ptr_x);
     return 0;
 }
