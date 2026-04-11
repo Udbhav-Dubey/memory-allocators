@@ -66,6 +66,16 @@ class Pool{
             *(char**)ptr_x=head;
             head=ptr_x;
         }
+void print_debug(){
+    if (!head){return ;}
+    char*curr=head;
+    for (int i=0;i<slots&&curr!=nullptr;i++){
+        std::cout << (void*)curr << "-> ";
+        curr=*(char**)curr;
+    }
+    std::cout << "nullptr\n";
+}
+
     ~Pool(){
         free(base);
     }
@@ -80,11 +90,12 @@ int main (){
     std::cout << "enter allocation size:\n";
     std:: cin>>x;
     char*ptr_x=pool.allocate(x);
+    pool.print_debug();
     char c='a';
    char *px=&c;
-    pool.pfree(px);
+//    pool.pfree(px);
     // lets check double free now 
-    pool.pfree(ptr_x);
+  //  pool.pfree(ptr_x);
 //    pool.pfree(ptr_x);
     return 0;
 }
