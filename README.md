@@ -38,7 +38,7 @@ A fixed-size pool allocator written in C++.
 
 The pool allocator:
 - owns its backing buffer via a single upfront `malloc`
-- manages a singly linked free-list embedded directly in the slots
+- manages a singly linked `free-list` embedded directly in the slots
 - allocates and frees in true O(1) time with no fragmentation
 - enforces a fixed slot size — all allocations are the same size
 - free order does not affect performance (no coalescing, no searching)
@@ -84,7 +84,6 @@ way. `pfree` is always two pointer writes regardless of access pattern.
 - Arena allocator — complete
 - Pool allocator — complete
 - Slab allocator — planned
-- Free-list allocator — planned
 
 ## Purpose
 This is a **learning repository**, not a production library. It exists to:
