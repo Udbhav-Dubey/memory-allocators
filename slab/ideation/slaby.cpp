@@ -4,6 +4,8 @@
 #include <iostream>
 #include <cassert>
 #include <cstdlib>
+#include <vector>
+#include <utility>
 class slab{
     int size_type{};
     int total_size{};
@@ -34,7 +36,7 @@ class slab{
         }
         }
         char*allocate(int x){
-            if (used_count>slots){
+            if (used_count>=slots){
                 return nullptr;
             }
             if (head==nullptr){return nullptr;}
@@ -71,70 +73,134 @@ class slab{
             }
             std::cout <<"nullptr\n";
         }
+        bool checkrange(char*x){
+            if (x>=base&&x<max_size){
+                return 1;
+            }
+            return 0;
+        }
 };
 //partial empty used fixes sizes or on demand work ?
-// vector for these guys idk need to control them partial has half complete slabs , used has completed slabs, empty has empy do what -> intially put slabs in empty only then start taking from it only;empty size? 
+// vector for these guys idk need to control them partial has half complete slabs , used has completed slabs, empty has  do what -> intially put slabs in empty only then start taking from it only;empty size? 
 // what if a linked list such that it solves the whole size problem everything on demand since its same type nodes can handle themselves , linked list, but thats extra metadata same as vector idk 
 class cache{
-    int cache_type{}; // 64 128 bytes vagera 
-    vector<slab*>partial;
-    vector<slab*>empty;
-    vector<slab*>used;
-    public:
-    cache(int ct,int es,int total_size){
-        cache_type=ct;
-        int s_size=total_size/es;
-        for (int i=0;i<es;i++){
-            slab& temp= &slab t(ct,s_size); // i know this is wrong but for few minutes assume its rights and write other part thinking each have slab*
-            used.push_back(temp);
-        }    
-    }
-    int get_cache_type{
-        return cache_type;
-    };
-    char *alloc(int size){
-        char*x=nullptr;
- //      for (auto s:empty){
-/*            if (s.empty()==1){// allocation can happen
-     }
-            if (s.partial()==1){//allocation can happen but this should be moved to partial since all allocations happen from there 
-    }
-            if (s.full()==1){//move to full 
-    }*/
-            if (partial.size()==0){
-                for (auto s:empty){
-                    // but why does an empty has a partial 
-                    x=s->allocate(size);
-                    if (s->partial()==1){
-                    // shouldnt this slab live in partial though
-                    //can i even push like this maybe i should take slab pointers so its easy to send fuck a linked list could be better but you get the idea 
-                    //but how does it get removed from here empty ? 
-                    partial.push_back(s);
-                    }
-                    else if (s->full()==1){
-                        full.push_back(s);
-                    }
-                }
-            }
-            else { 
-                for (auto s:partial){
-                    x=s->allocate(size);
-                    if (s->full()==1){
-                        full.push_back(s);
-                    }
-                }
-            }
-//}      
-        return x;
-    }
-    void free(char*x){
-        for (auto s:partial){
-            s->pfree(x);
-            if (s->empty()==1){
-                empty.emplace_back(s);
+    std::vector<slab*>used;
+    std::vector<slab*>empty;
+    std::vector<slab*>partial;
+   int tsize{};
+   int total_size{};
+   void debug_type(std::vector<slab*>x){
+       if (x.size()==0){std::cout << "nothing in "<< "here" <<"\n";}
+        else {
+            for (auto s:x){
+                s->print_debug();
             }
         }
-    }
+   }
+    public:
+   void debug(){
+       std::cout << "used\n"; 
+       debug_type(used);
+       std::cout<<"empty\n";
+        debug_type(empty);
+        std::cout << "partial\n";
+        debug_type(partial);
+        std::cout << "\n";
+   }
+   cache(int ts,int t){
+        tsize=ts;
+        total_size=t;
+   }
+   char*allocate(){
+       char*x=nullptr;
+       // agar partial 0 to empty se nikalo nahi to partial pe hi kaam karo 
+        if (partial.size()==0){
+            if (empty.size()==0){
+               // new slab required 
+               slab*temp=new slab(tsize,total_size);
+                x=temp->allocate(tsize);
+                if (temp->full()){
+                    used.push_back(temp);
+                }
+                else {
+                partial.push_back(temp);
+                }
+ //               std::cout <<"is it even pushed printing partial size : " << partial.size() << "\n";
+            }
+            else {
+                // but how does empty get things ? i am directy sending partial will fix this for now just
+                // take temp from empty but how // take last one and pop_back?
+                slab*temp=empty.back();
+                empty.pop_back();
+                x=temp->allocate(tsize);
+                if (temp->full()){
+                used.push_back(temp);
+                }
+                else {
+                    partial.push_back(temp);
+                }
+   //             std::cout <<"is it even pushed printing partial size : " << partial.size() << "\n";
+            
+            }
+        }
+        // partial se  pe hai lelo slab wahain se lelo
+        else {
+          slab*temp=partial.back();
+          partial.pop_back();
+          x=temp->allocate(tsize);
+          if (temp->full()==1){
+            used.push_back(temp);
+          }
+          else {
+            partial.push_back(temp);
+          }
+             //  std::cout <<"is it even pushed printing partial size : " << partial.size() << "\n";
+  
+        }
+   return x;
+   }
+   // does a block goes back to same slab , i think so but if all the slabs are of same size and does same thing for one cahce does changing good or not ??? 
+   // lets assume yes same slab so for that what i could do is take a block and check range the range it is in we will simply insert but this way would be o(n) because i would need to search in partial and used the ranges and call free of slab
+   // so create checkrange in slab also to check ;
+   void free(char*x){
+       bool found=false;
+//            if (partial.size()==0){std::cerr<<"cannot free since no block allocated\n";}       
+            for (auto &s:partial){
+                if (s->checkrange(x)){
+                    s->pfree(x);
+                    // need to remove s from here as well should i make it point to nullptr? swap with back and pop;
+                    if (s->empty()){
+                        empty.push_back(s);
+                    std::swap(s,partial.back());
+                    partial.pop_back();
+                    }
+                    found=1;
+                    break;
+                    
+                }
+            }
+            if (found==1){return ;}
+            for (auto &s:used){
+                if (s->checkrange(x)){
+                s->pfree(x);
+                // need to remove s from here as well should i make it point to nullptr?rebuild it ?;
+                    if (s->empty()){
+                        empty.push_back(s);
+                    }
+                    else{
+                        partial.push_back(s);
+                    }
+                    std::swap(s,used.back());
+                    used.pop_back();
+                    found=1;
+                    break;
+                
+                }
+            }
+       assert(found==true&&"not here mate\n");
+   }
+   ~cache(){
+   }
 };
 class slabAllocator{
     
@@ -153,7 +219,75 @@ int main (){
     s.pfree(y); 
     */
     //this was just slab part no need to focus on cache part
-    
-    
+   /*cache ch(64,192); 
+   ch.debug();
+    char*v=ch.allocate();  
+    ch.debug();
+    char*a=ch.allocate();  
+    ch.debug();
+    char*x=ch.allocate();  
+    ch.debug();
+     char*z=ch.allocate();  
+    ch.debug();
+    ch.free(v);
+    ch.debug();
+    */ 
+/*    cache ch(64,192);
+
+    std::cout << "\n--- initial ---\n";
+    ch.debug();
+
+    char* a = ch.allocate();
+    char* b = ch.allocate();
+    char* c = ch.allocate();
+
+    std::cout << "\n--- after 3 allocs ---\n";
+    ch.debug();
+
+    char* d = ch.allocate();
+
+    std::cout << "\n--- after 4th alloc ---\n";
+    ch.debug();
+
+    ch.free(a);
+
+    std::cout << "\n--- free(a) ---\n";
+    ch.debug();
+
+    ch.free(b);
+
+    std::cout << "\n--- free(b) ---\n";
+    ch.debug();
+
+    ch.free(c);
+
+    std::cout << "\n--- free(c) ---\n";
+    ch.debug();
+
+    char* e = ch.allocate();
+
+    std::cout << "\n--- alloc(e) ---\n";
+    ch.debug();
+    char* ptrs[20];
+
+for(int i=0;i<20;i++)
+    ptrs[i]=ch.allocate();
+
+for(int i=0;i<20;i++)
+    ch.free(ptrs[i]);
+
+ch.debug();
+*/
+    cache ch(64,192);
+
+char* ptrs[20];
+
+for(int i=0;i<20;i++)
+    ptrs[i]=ch.allocate();
+
+for(int i=0;i<20;i++)
+    ch.free(ptrs[i]);
+
+ch.debug();
 return 0;
 }
