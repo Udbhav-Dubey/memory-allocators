@@ -72,15 +72,76 @@ class slab{
             std::cout <<"nullptr\n";
         }
 };
+//partial empty used fixes sizes or on demand work ?
+// vector for these guys idk need to control them partial has half complete slabs , used has completed slabs, empty has empy do what -> intially put slabs in empty only then start taking from it only;empty size? 
+// what if a linked list such that it solves the whole size problem everything on demand since its same type nodes can handle themselves , linked list, but thats extra metadata same as vector idk 
 class cache{
-    
+    int cache_type{}; // 64 128 bytes vagera 
+    vector<slab*>partial;
+    vector<slab*>empty;
+    vector<slab*>used;
+    public:
+    cache(int ct,int es,int total_size){
+        cache_type=ct;
+        int s_size=total_size/es;
+        for (int i=0;i<es;i++){
+            slab& temp= &slab t(ct,s_size); // i know this is wrong but for few minutes assume its rights and write other part thinking each have slab*
+            used.push_back(temp);
+        }    
+    }
+    int get_cache_type{
+        return cache_type;
+    };
+    char *alloc(int size){
+        char*x=nullptr;
+ //      for (auto s:empty){
+/*            if (s.empty()==1){// allocation can happen
+     }
+            if (s.partial()==1){//allocation can happen but this should be moved to partial since all allocations happen from there 
+    }
+            if (s.full()==1){//move to full 
+    }*/
+            if (partial.size()==0){
+                for (auto s:empty){
+                    // but why does an empty has a partial 
+                    x=s->allocate(size);
+                    if (s->partial()==1){
+                    // shouldnt this slab live in partial though
+                    //can i even push like this maybe i should take slab pointers so its easy to send fuck a linked list could be better but you get the idea 
+                    //but how does it get removed from here empty ? 
+                    partial.push_back(s);
+                    }
+                    else if (s->full()==1){
+                        full.push_back(s);
+                    }
+                }
+            }
+            else { 
+                for (auto s:partial){
+                    x=s->allocate(size);
+                    if (s->full()==1){
+                        full.push_back(s);
+                    }
+                }
+            }
+//}      
+        return x;
+    }
+    void free(char*x){
+        for (auto s:partial){
+            s->pfree(x);
+            if (s->empty()==1){
+                empty.emplace_back(s);
+            }
+        }
+    }
 };
 class slabAllocator{
     
 };
 int main (){
     // currently rely on allignment since slab will not deal with any of that allignment would be dealt by slabAllocator class ;
-    slab s(64,128);
+ /*   slab s(64,128);
     s.print_debug();
     char*x=s.allocate(55); 
     s.print_debug();
@@ -89,6 +150,10 @@ int main (){
     char*z=s.allocate(34);
     s.pfree(x);
     s.print_debug();
-    s.pfree(y);
+    s.pfree(y); 
+    */
+    //this was just slab part no need to focus on cache part
+    
+    
 return 0;
 }
