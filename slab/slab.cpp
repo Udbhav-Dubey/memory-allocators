@@ -146,3 +146,40 @@ cache::~cache(){
     for (auto s:partial)delete s;
     for (auto s:used)delete s;
 }
+void slabAllocator::findsize(size_t&n){
+    if (n<0){return ;}
+    if (n==0){return ;}
+    n--;
+    n|=n>>1;
+    n|=n>>2;
+    n|=n>>4;
+    n|=n>>8;
+    n|=n>>16;
+    n=n+1;
+}
+slabAllocator::slabAllocator(size_t ts){
+    totalsize=ts;
+}
+char*slabAllocator::allocate(size_t n){
+    assert(n<totalsize&&"ask > totalsize\n");
+    findsize(n);
+    if (stc.find(n)==stc.end()){
+        cache*temp=new cache(n,totalsize);
+        stc[n]=temp;
+    }
+    char*ptr_x=stc[n]->allocate();
+    assert(ptr_x!=nullptr&&"something went wrong in allocation after accessing from map\n");
+    ptc[ptr_x]=stc[n];
+    return ptr_x;
+}
+void slabAllocator::free(char*x){
+    assert(ptc.find(x)!=ptc.end()&&"double free on same\n");
+ptc[x]->cfree(x);
+ptc.erase(x);
+}
+void slabAllocator::debug(){
+    for (auto &[s,c]:stc){
+        std::cout <<"Cache :" << s<<"\n";
+        c->debug();
+    }
+}
