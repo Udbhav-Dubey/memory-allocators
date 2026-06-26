@@ -6,8 +6,8 @@
 #include <unordered_map>
 #include <utility>
 class slab{
-    int size_type{};
-    int total_size{};
+    size_t block_size{};
+    size_t total_size{};
     int slots{};
     char*base{nullptr};
     char*head{nullptr};
@@ -16,8 +16,8 @@ class slab{
     public:
     slab(const slab&)=delete;
     slab operator=(const slab&)=delete;
-        slab(int t,int ts);
-        char*allocate(int x);
+        slab(size_t t,size_t ts);
+        char*allocate();
         void pfree(char*ptr_x);
         bool full();
         bool partial();
@@ -54,3 +54,4 @@ class slabAllocator{
         void free(char*x);
         ~slabAllocator();
         void debug();
+};
