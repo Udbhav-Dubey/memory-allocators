@@ -63,3 +63,86 @@ bool slab:: checkrange(char*x){
 slab::~slab(){
     free(base);
 }
+void cache::debug_type(std::vector<slab*>x){
+    if (x.size()==0){std::cout << "nothing in here\n";}
+    else {
+        for (auto s:x){
+            s->print_debug();
+        }
+    }
+}
+void cache::debug(){
+    std::cout <<"used\n";
+    debug_type(used);
+    std::cout << "empty\n";
+    debug_type(empty);
+    std::cout <<"partial\n";
+    debug_type(partial);
+    std::cout <<"\n";
+}
+cache::cache(size_t ts,size_t t){
+    tsize=ts;
+    total_size=t;
+}
+char* cache::allocate(){
+    char*x=nullptr;
+    slab*temp=nullptr;
+    if (partial.size()==0){
+        if (empty.size()==0){
+        temp=new slab(tsize,total_size);
+        }
+    else{
+        temp=empty.back();
+        empty.pop_back();
+    }
+    }
+    else {
+       temp=partial.back();
+       partial.pop_back();
+    }
+    x=temp->allocate();
+    if (temp->full()){
+        used.push_back(temp);
+    }
+    else {
+        partial.push_back(temp);
+    }
+    return x;
+}
+void cache::cfree(char*x){
+    bool found=false;
+    for (auto &s:partial){
+        if (s->checkrange(x)){
+            s->pfree(x);
+            if (s->empty()){
+                empty.push_back(s);
+                std::swap(s,partial.back());
+                partial.pop_back();
+            }
+            found=1;
+            break;
+        }
+    }
+    if (found==1){return ;}
+    for (auto &s:used){
+        if (s->checkrange(x)){
+            s->pfree(x);
+            if (s->empty()){
+                empty.push_back(s);
+            }
+            else {
+                partial.push_back(s);
+            }
+            std::swap(s,used.back());
+            used.pop_back();
+            found=1;
+            break;
+        }
+    }
+    assert(found==true&&"not found here\n");
+}
+cache::~cache(){
+    for (auto s:empty)delete s;
+    for (auto s:partial)delete s;
+    for (auto s:used)delete s;
+}

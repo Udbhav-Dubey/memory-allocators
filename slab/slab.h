@@ -30,14 +30,14 @@ class cache{
     std::vector<slab*>used;
     std::vector<slab*>empty;
     std::vector<slab*>partial;
-   int tsize{};
-   int total_size{};
+   size_t tsize{};
+   size_t total_size{};
    void debug_type(std::vector<slab*>x);
     public:
    cache(const cache&)=delete;
    cache operator=(const cache&)=delete;
    void debug();
-   cache(int ts,int t);
+   cache(size_t ts,size_t t);
    char*allocate();
    void cfree(char*x);
    ~cache();
