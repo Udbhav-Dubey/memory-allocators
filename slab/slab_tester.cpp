@@ -173,6 +173,29 @@ static void test_mixed_sizes_interleaved() {
     check(true, "mixed-size interleaved alloc/free survives");
 }
 
+static void test_exact_block_reuse() {
+    section("8. exact block reuse");
+    slabAllocator sa(1024 * 1024);
+
+    char* p1 = sa.allocate(64);
+    sa.free(p1);
+
+    char* p2 = sa.allocate(64);
+    check(p1 == p2, "allocator reuses the recently freed block");
+
+    sa.free(p2);
+
+    // same property must hold across multiple sizes
+    size_t sizes[] = {8, 16, 32, 128};
+    for (size_t sz : sizes) {
+        char* a = sa.allocate(sz);
+        sa.free(a);
+        char* b = sa.allocate(sz);
+        check(a == b, "block reuse holds for size");
+        sa.free(b);
+    }
+}
+
 static void bench_alloc_only() {
     section("bench — alloc only");
     static constexpr int    N  = 100'000;
@@ -285,6 +308,7 @@ int main() {
     test_random_free_order();
     test_reuse_after_free();
     test_mixed_sizes_interleaved();
+    test_exact_block_reuse();
 
     std::cout << "\n" << std::string(50, '=') << "\n"
               << "results: " << g_passed << " passed, " << g_failed << " failed\n"
