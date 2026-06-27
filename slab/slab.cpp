@@ -183,3 +183,10 @@ void slabAllocator::debug(){
         c->debug();
     }
 }
+slabAllocator::~slabAllocator(){
+   for (auto &[k,v]:stc){
+        delete v;
+   } 
+   stc.clear();
+   ptc.clear();
+}
